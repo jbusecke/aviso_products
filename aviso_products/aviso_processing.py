@@ -9,7 +9,8 @@ from datetime import datetime
 def merge_aviso(ddir_dt,
                 fid_dt='dt_global_allsat_msla_uv_*.nc',
                 ddir_nrt=None,
-                fid_nrt='nrt_global_allsat_msla_uv_*.nc'):
+                fid_nrt='nrt_global_allsat_msla_uv_*.nc',
+                engine='scipy'):
 
     """read aviso files into xarray dataset
     This function merges delayed-time and near-real time products if optional
@@ -38,10 +39,12 @@ def merge_aviso(ddir_dt,
     transition_date : datetime
         date when data switches from delayed-time and near-real time
     """
-    ds_dt = xr.open_mfdataset(ddir_dt+'/'+fid_dt).sortby('time')
+    ds_dt = xr.open_mfdataset(ddir_dt+'/'+fid_dt,
+                              engine=engine).sortby('time')
     if ddir_nrt is not None:
         transition_date = ds_dt.time.isel(time=-1)
-        ds_nrt = xr.open_mfdataset(ddir_nrt+'/'+fid_nrt).sortby('time')
+        ds_nrt = xr.open_mfdataset(ddir_nrt+'/'+fid_nrt,
+                                   engine=engine).sortby('time')
         ds = xr.concat((ds_dt,
                         ds_nrt.isel(time=ds_nrt.time > transition_date)),
                        dim='time')
@@ -77,7 +80,7 @@ def high_pass_filter(np_ar, stddev):
         return np_ar - convolve(np_ar, gaussian_kernel, boundary='wrap')
 
 
-def filter_aviso(fname, stddev, time_subsample=1):
+def filter_aviso(ds, stddev, time_subsample=1):
     ds = xr.open_mfdataset(fname, engine='scipy')
     ds = ds.chunk({'time': 1})
 
