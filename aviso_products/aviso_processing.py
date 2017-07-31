@@ -81,8 +81,6 @@ def high_pass_filter(np_ar, stddev):
 
 
 def filter_aviso(ds, stddev, time_subsample=1):
-    ds = xr.open_mfdataset(fname, engine='scipy')
-    ds = ds.chunk({'time': 1})
 
     u = ds['u'][::time_subsample]
     v = ds['v'][::time_subsample]
