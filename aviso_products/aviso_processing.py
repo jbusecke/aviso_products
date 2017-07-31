@@ -105,7 +105,7 @@ def filter_aviso(fname, stddev, time_subsample=1):
     return filtered_ds
 
 
-def write_yearly_files(ds, odir, fname, verbose=False):
+def write_yearly_files(ds, odir, fname, verbose=False, engine='netcdf4'):
     if not os.path.exists(odir):
         os.mkdir(odir)
 
@@ -116,4 +116,4 @@ def write_yearly_files(ds, odir, fname, verbose=False):
     if verbose:
         print('Writing dataset to '+odir)
     with ProgressBar():
-        xr.save_mfdataset(datasets, paths, engine='netcdf4')
+        xr.save_mfdataset(datasets, paths, engine=engine)
