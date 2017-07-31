@@ -6,6 +6,60 @@ from dask.diagnostics import ProgressBar
 from datetime import datetime
 
 
+def merge_aviso(ddir_dt,
+                fid_dt='dt_global_allsat_msla_uv_*.nc',
+                ddir_nrt=None,
+                fid_nrt='nrt_global_allsat_msla_uv_*.nc'):
+
+    """read aviso files into xarray dataset
+    This function merges delayed-time and near-real time products if optional
+    near-real time parameters are given.
+
+    PARAMETERS
+    ----------
+    ddir_dt : path
+        data directory for delayed time product
+    fid_dt : str
+        string pattern identifying delayed time products
+        (default:'dt_global_allsat_msla_uv_*.nc')
+    ddir_dt : path
+        data directory for near-real time product
+        (default: None)
+    fid_dt : str
+        string pattern identifying near-real time products
+        (default:nrt_global_allsat_msla_uv_*.nc')
+
+    RETURNS
+    -------
+    ds : xarray.Dataset
+        combined Aviso dataset
+    start_date : datetime
+        date of first aviso data
+    transition_date : datetime
+        date when data switches from delayed-time and near-real time
+    """
+    ds_dt = xr.open_mfdataset(ddir_dt+'/'+fid_dt).sortby('time')
+    if ddir_nrt is not None:
+        transition_date = ds_dt.time.isel(time=-1)
+        ds_nrt = xr.open_mfdataset(ddir_nrt+'/'+fid_nrt).sortby('time')
+        ds = xr.concat((ds_dt,
+                        ds_nrt.isel(time=ds_nrt.time > transition_date)),
+                       dim='time')
+    else:
+        ds = ds_dt
+        transition_date = None
+
+    # Test if time is continous
+    if np.any(ds.time.diff('time').data != ds.time.diff('time')[0].data):
+        raise RuntimeError('Time steps are not homogeneous. Likely missing \
+        files between the dt and nrt products')
+
+    start_date = ds.time[0].data
+    ds = ds.chunk({'time': 1})
+
+    return ds, start_date, transition_date
+
+
 def high_pass_filter(np_ar, stddev):
     gaussian_kernel = Gaussian2DKernel(stddev=stddev)
     if (np_ar.ndim > 2) and (np_ar.shape[0] > 1):
