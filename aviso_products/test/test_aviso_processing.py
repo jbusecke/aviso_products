@@ -2,7 +2,6 @@ from __future__ import print_function
 import pytest
 import xarray as xr
 import numpy as np
-from xarray.testing import assert_allclose as xr_assert_allclose
 import pandas as pd
 from aviso_products.aviso_processing import merge_aviso
 
@@ -118,7 +117,7 @@ def test_merge_aviso(vel_dir):
                                       fid_dt='dt*.nc',
                                       ddir_nrt=None)
     ds_dt_check = xr.open_mfdataset(ddir+'/dt*.nc').sortby('time')
-    xr_assert_allclose(ds_dt, ds_dt_check)
+    xr.testing.xr_assert_allclose(ds_dt, ds_dt_check)
     assert sd_dt == np.datetime64('2000-01-01')
     assert td_dt is None
     print(ds_dt.chunks)
@@ -133,7 +132,7 @@ def test_merge_aviso(vel_dir):
                             xr.open_mfdataset(ddir+'/nrt*.nc').
                             sel(time=check_time)]).sortby('time')
 
-    xr_assert_allclose(ds_nrt, ds_nrt_check)
+    xr.testing.xr_assert_allclose(ds_nrt, ds_nrt_check)
     assert sd_nrt == np.datetime64('2000-01-01')
     assert td_nrt == np.datetime64('2000-01-03')
 
