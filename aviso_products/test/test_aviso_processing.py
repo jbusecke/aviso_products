@@ -113,28 +113,29 @@ def vel_dir(tmpdir_factory):
 def test_merge_aviso(vel_dir):
     ddir = str(vel_dir)
 
-    ds_dt, sd_dt, td_dt = merge_aviso(ddir,
-                                      fid_dt='dt*.nc',
-                                      ddir_nrt=None)
+    ds_dt = merge_aviso(ddir,
+                        fid_dt='dt*.nc',
+                        ddir_nrt=None)
+
     ds_dt_check = xr.open_mfdataset(ddir+'/dt*.nc').sortby('time')
     xr.testing.assert_allclose(ds_dt, ds_dt_check)
-    assert sd_dt == np.datetime64('2000-01-01')
-    assert td_dt is None
+    assert ds_dt.attrs['start_date'] == np.datetime64('2000-01-01')
+    assert ds_dt.attrs['transition_date'] is None
     print(ds_dt.chunks)
     assert all([x == 1 for x in list(ds_dt.chunks['time'])])
 
-    ds_nrt, sd_nrt, td_nrt = merge_aviso(ddir,
-                                         fid_dt='dt*.nc',
-                                         ddir_nrt=ddir,
-                                         fid_nrt='nrt_*.nc')
+    ds_nrt = merge_aviso(ddir,
+                         fid_dt='dt*.nc',
+                         ddir_nrt=ddir,
+                         fid_nrt='nrt_*.nc')
     check_time = slice('2000-01-04', None)
     ds_nrt_check = xr.merge([xr.open_mfdataset(ddir+'/dt*.nc'),
                             xr.open_mfdataset(ddir+'/nrt*.nc').
                             sel(time=check_time)]).sortby('time')
 
     xr.testing.assert_allclose(ds_nrt, ds_nrt_check)
-    assert sd_nrt == np.datetime64('2000-01-01')
-    assert td_nrt == np.datetime64('2000-01-03')
+    assert ds_nrt.attrs['start_date'] == np.datetime64('2000-01-01')
+    assert ds_nrt.attrs['transition_date'] == np.datetime64('2000-01-03')
 
     with pytest.raises(RuntimeError) as excinfo:
         merge_aviso(ddir,

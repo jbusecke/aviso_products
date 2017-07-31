@@ -56,8 +56,10 @@ def merge_aviso(ddir_dt,
 
     start_date = ds.time[0].data
     ds = ds.chunk({'time': 1})
+    ds.attrs['start_date'] = start_date
+    ds.attrs['transition_date'] = transition_date
 
-    return ds, start_date, transition_date
+    return ds
 
 
 def high_pass_filter(np_ar, stddev):
