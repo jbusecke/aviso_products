@@ -10,4 +10,3 @@ exclude_lines =
 ignore_errors = True
 omit = aviso_products/test/*
        aviso_products/__init__.py
-       aviso_products/aviso_processing.py
