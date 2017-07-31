@@ -3,7 +3,7 @@ name: test_env
 #   - conda-forge
 dependencies:
   - python=3.4
-  - xarray=0.9.6
+  - xarray>=0.9.6
   - netcdf4
   - dask
   - numpy
