@@ -4,6 +4,7 @@ import os
 from astropy.convolution import Gaussian2DKernel, convolve
 from dask.diagnostics import ProgressBar
 from datetime import datetime
+from xarrayutils import aggregate
 
 
 def merge_aviso(ddir_dt,
@@ -120,3 +121,14 @@ def write_yearly_files(ds, odir, fname, verbose=False, engine='netcdf4'):
         print('Writing dataset to '+odir)
     with ProgressBar():
         xr.save_mfdataset(datasets, paths, engine=engine)
+
+
+def calculate_eke(ds, remove_seas=True):
+    ''' Calculate EKE from aviso '''
+    # remove seasonal cycle from
+    if remove_seas:
+        ds = ds.groupby('time.month')-(ds.groupby('time.month').mean())
+
+    eke = 0.5*(ds.u**2 + ds.v**2)
+    eke = aggregate(eke.resample('MS', 'time'), [('lon', 4), ('lat', 4)])
+    return eke
