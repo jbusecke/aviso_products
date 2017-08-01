@@ -127,8 +127,10 @@ def calculate_eke(ds, remove_seas=True):
     ''' Calculate EKE from aviso '''
     # remove seasonal cycle from
     if remove_seas:
-        ds = ds.groupby('time.month')-(ds.groupby('time.month').mean())
-
+        with ProgressBar():
+            print('Calculating Seasonal cycle for EKE')
+            seas_clim = ds.groupby('time.month').mean().compute()
+        ds = ds.groupby('time.month')-seas_clim
     eke = 0.5*(ds.u**2 + ds.v**2)
-    eke = aggregate(eke.resample('MS', 'time'), [('lon', 4), ('lat', 4)])
+    eke = eke.resample('MS', 'time')
     return eke
