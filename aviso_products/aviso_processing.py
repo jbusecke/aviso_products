@@ -129,7 +129,7 @@ def calculate_eke(ds, remove_seas=True):
     if remove_seas:
         with ProgressBar():
             print('Calculating Seasonal cycle for EKE')
-            seas_clim = ds.groupby('time.month').mean().compute()
+            seas_clim = ds.groupby('time.month').mean()
         ds = ds.groupby('time.month')-seas_clim
     eke = 0.5*(ds.u**2 + ds.v**2)
     eke = eke.resample('MS', 'time')
